@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>해양 경주 - OCEAN FUEL RACE</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(#0a2a4a,#030b1a);color:#dff;font-family:system-ui,'Malgun Gothic',sans-serif;min-height:100vh}
+h1{margin:0;color:#4ff;text-shadow:0 0 12px #0cf;letter-spacing:2px}.sub{color:#fc4;font-size:13px}
+header{padding:12px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.pts{color:#fc4;border:1px solid #fc4;border-radius:20px;padding:4px 14px}
+.scr{display:none;padding:0 14px 20px}.scr.on{display:block}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:800px){.two{grid-template-columns:1fr}}
+.pn{background:#0c3a5c88;border:1px solid #0df;border-radius:14px;padding:14px;box-shadow:0 0 18px #0cf4;backdrop-filter:blur(6px)}
+input{width:100%;padding:10px;border-radius:8px;border:1px solid #0df;background:#021a30;color:#fff;font-size:16px}
+button{background:linear-gradient(#0af,#06a);color:#fff;border:1px solid #6ef;border-radius:8px;padding:10px 16px;font-size:15px;cursor:pointer;margin:3px}
+button:disabled{opacity:.35;cursor:not-allowed}button.g{background:linear-gradient(#fc4,#b80);color:#210}
+.sl{display:flex;align-items:center;gap:8px;padding:5px;border-bottom:1px solid #0df3}.sl svg{width:80px;height:32px}
+.me{background:#fc42;border-left:3px solid #fc4}.tag{background:#fc4;color:#210;font-size:11px;border-radius:4px;padding:1px 5px}
+.fc{border:1px solid #0df;border-radius:10px;padding:10px;margin:6px 0;cursor:pointer;background:#02203a}.fc.sel{border-color:#fc4;box-shadow:0 0 14px #fc4}
+.fc b{font-size:17px}.fm{color:#4ff;font-family:monospace}
+.det{font-size:14px;line-height:1.55}.det p{margin:5px 0}.det i{color:#4ff;font-style:normal;font-weight:bold}
+.lane{position:relative;height:56px;margin:5px 0;border-radius:8px;overflow:hidden;background:linear-gradient(90deg,#064,#06a,#064);background-size:200% 100%;animation:w 4s linear infinite;border:1px solid #0df6}
+@keyframes w{to{background-position:200% 0}}
+.lane .sh{position:absolute;top:8px;width:11%;min-width:60px;transition:none}.lane .sh svg{width:100%}
+.lane .nm{position:absolute;left:6px;top:2px;font-size:11px;text-shadow:0 0 3px #000;z-index:2}
+.lane .km{position:absolute;right:30px;top:2px;font-size:11px;z-index:2;text-shadow:0 0 3px #000}
+.lane .fl{position:absolute;right:0;top:0;bottom:0;width:10px;background:repeating-linear-gradient(#fff 0 8px,#000 8px 16px)}
+.lane.me2{border-color:#fc4;box-shadow:0 0 10px #fc4}.lane.hz{border-color:#f44;box-shadow:0 0 14px #f44;animation:w 1s linear infinite}
+.lane.hz::after{content:'';position:absolute;inset:0;background:#f003;animation:bl .4s infinite alternate;z-index:1}
+.lane.hz.fog::after{background:#fffc;animation:none}.lane.hz.ice::after{background:#8ef6}
+@keyframes bl{to{background:#0005}}
+#ban{display:none;background:#400c;border:2px solid #f44;border-radius:10px;padding:10px;margin:8px 0}
+.shake{animation:sk .15s infinite}@keyframes sk{50%{transform:translate(2px,2px)}}
+table{width:100%;border-collapse:collapse}td,th{padding:6px;border-bottom:1px solid #0df3;text-align:left}td svg{width:70px;height:28px}
+.dg{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.mod{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;z-index:9;padding:10px}.mod.on{display:flex}
+.mod .pn{max-width:560px;max-height:90vh;overflow:auto;background:#06223c}
+.lane{height:72px;background:repeating-linear-gradient(#0000 0 0),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='16'%3E%3Cpath d='M0 8Q10 0 20 8T40 8T60 8T80 8' fill='none' stroke='%23fff' stroke-opacity='.28' stroke-width='1.5'/%3E%3C/svg%3E"),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='28'%3E%3Cpath d='M0 14Q15 4 30 14T60 14T90 14T120 14' fill='none' stroke='%239ef' stroke-opacity='.18' stroke-width='2'/%3E%3C/svg%3E"),linear-gradient(#1a8fc4,#0a5a96 45%,#03274d);animation:w2 3s linear infinite;border-color:#8ef8}
+.lane.hz{animation:w2 1s linear infinite;filter:brightness(.75) saturate(.8)}
+@keyframes w2{to{background-position:0 0,-80px 0,120px 0,0 0}}
+.lane .sh{top:14px;width:12%;min-width:90px;z-index:3}.lane .wk{position:absolute;left:0;top:44px;height:10px;background:linear-gradient(90deg,#fff0,#fffb);border-radius:6px;z-index:2;filter:blur(2px)}
+.lane,.lane.hz{animation:none!important;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='14'%3E%3Cpath d='M0 7Q11 3 22 7T45 7T67 7T90 7' fill='none' stroke='%23fff' stroke-opacity='.12' stroke-width='1.5'/%3E%3C/svg%3E"),linear-gradient(#bcdcf0 0,#e6f2f8 27%,#8fc0e0 28%,#2c8ccb 32%,#1a74b8 60%,#0d5499 100%)}
+.lane .nm,.lane .km{color:#023;text-shadow:0 0 3px #fff8}
+.lane .sh.bo{filter:drop-shadow(0 0 4px #fff176) drop-shadow(0 0 10px #ffd400) drop-shadow(0 0 20px #ffb300)}
+</style></head><body>
+<header><div><h1>🌊 해양 경주</h1><div class="sub">OCEAN FUEL RACE : 대양의 승부</div></div><div class="pts"><span id="tp">0</span> P</div></header>
+
+<section id="ready" class="scr on"><div class="two">
+<div class="pn"><h3>⚓ 선박 설정</h3><input id="pname" maxlength="12" value="나의 선박" placeholder="선박 이름 입력"><div id="pship" style="text-align:center;padding:10px"></div><div id="plist"></div></div>
+<div class="pn"><h3>⛽ 이번 경주 연료 (1종 선택)</h3><div id="offer"></div><div id="od" class="det pn" style="margin-top:8px">연료 카드를 누르면 선택되고 상세 설명이 나옵니다.</div>
+<div><button id="go" class="g" disabled>🚀 경주 시작</button><button id="dexb">📚 연료 도감</button></div></div></div></section>
+
+<section id="race" class="scr"><div class="pn"><b>🏁 10km 경주</b> <span id="rt"></span><div id="ban"></div><div id="lanes"></div><div id="rank" style="margin-top:8px;font-size:14px"></div></div></section>
+
+<section id="res" class="scr"><div class="pn"><h2>🏆 최종 결과</h2><div id="rsum" style="font-size:18px;margin:8px 0"></div><table id="rtab"></table>
+<button id="again" class="g">다시 출항하기</button><button id="dex2">연료 도감</button><button id="back">출항 준비로 돌아가기</button></div></section>
+
+<section id="dex" class="scr"><div class="pn"><h2>📚 연료 도감 (21종)</h2><input id="q" placeholder="검색 (이름·화학식)"><div id="cats" style="margin:8px 0"></div><div id="dg" class="dg"></div><button id="dback">← 돌아가기</button></div></section>
+<div id="mod" class="mod"><div class="pn"><div id="md" class="det"></div><button id="mc">닫기</button></div></div>
+
+<script>
+const $=s=>document.querySelector(s);
+// 이름|화학식|분류|실용단계|화학적 특징|장점|단점/주의|활용 현황|선박 연료 특징
+const FD=`경유(MGO)|C₁₀~C₂₀ 탄화수소 혼합물|화석|상용|증류로 얻는 저점도 석유계 연료. 발열량 약 42.7MJ/kg.|에너지 밀도 높음, 인프라 완비, 저황이라 SOx 규제(ECA) 대응 쉬움|CO₂ 배출, NOx·입자상물질 발생|전 세계 선박에서 널리 사용|디젤엔진에 바로 사용, 보조기관·소형선에 흔함
+중유(HFO)|중질 탄화수소(황·금속 포함)|화석|상용|정유 잔사유 기반의 고점도 연료. 가열해야 분사 가능.|저렴하고 에너지 밀도 높음|SOx·PM 다량, 스크러버 필요, 유출 시 환경피해 큼|스크러버 장착 대형선에서 사용(규제로 감소)|대형 2행정 저속엔진용, 연료 가열·정제 설비 필요
+LNG|CH₄(메탄 주성분)|가스|상용|-162℃ 극저온 액화 천연가스. 수소/탄소비가 높음.|CO₂ 약 20~25% 감축, SOx 거의 없음, NOx·PM 적음|메탄슬립(온실가스), 극저온 탱크 필요, 부피 큼|LNG 운반선·컨테이너선 등 수천 척 운항|이중연료 엔진 사용, 저온 단열탱크 필수
+LPG|C₃H₈/C₄H₁₀|가스|상용|약 -42℃(프로판) 또는 가압으로 액화하는 석유가스.|저황, 비교적 낮은 압력으로 저장, 연소 깨끗|독성 낮으나 공기보다 무거워 누출 시 체류, CO₂ 배출|LPG 운반선이 자체 화물을 연료로 사용|2행정 이중연료 엔진 상용화, 화물 겸용 가능
+메탄올|CH₃OH|알코올|상용|가장 단순한 알코올. 상온 액체, 발열량 약 19.9MJ/kg.|액체라 취급 쉬움, 연소 깨끗, 개조 쉬움|에너지 밀도 경유의 절반, 독성, 불꽃이 잘 안 보임|머스크 등 메탄올 추진 컨테이너선 다수 발주·운항|이중연료 엔진, 탱크 용적 약 2배 필요
+에탄올|C₂H₅OH|알코올|시범|발효로 얻는 알코올. 발열량 약 26.8MJ/kg.|바이오 유래 가능, 독성 낮음, 입자상물질 적음|에너지 밀도 낮음, 흡습성, 식량작물 경쟁 논란|내륙 선박·일부 시험 사례|메탄올과 유사한 알코올 연소 특성
+암모니아|NH₃|무탄소|시범|탄소 없는 -33℃ 액화 가능 화합물. 발열량 약 18.6MJ/kg.|연소 시 CO₂ 없음, 액화·운송 인프라 존재|독성·부식성, 점화 어려움, N₂O·미연 NH₃ 배출 우려|암모니아 추진 선박 실증·초도선 인도 단계|파일럿 연료 병용 엔진, 엄격한 안전설비 필요
+수소|H₂|무탄소|시범|가장 가벼운 분자. 질량당 발열량 약 120MJ/kg.|연소 시 물만 배출, 연료전지 사용 가능|-253℃ 극저온 또는 고압 필요, 체적 에너지밀도 매우 낮음, 폭발범위 넓음|소형 페리·예인선 등 시범 운항|연료전지 또는 수소 엔진, 대형 탱크 공간 문제
+바이오디젤|지방산메틸에스테르(FAME)|바이오|상용|식물유·폐식용유를 에스테르화한 연료.|경유와 혼합 가능, 윤활성 좋음, 생애주기 CO₂ 감소|산소 함유로 저온 유동성·산화안정성 낮음, 장기 저장 시 열화|B20~B30 혼합 형태로 선박 사용|기존 디젤에 혼합 사용, 필터·탱크 미생물 관리 필요
+바이오메탄|CH₄(바이오가스 정제)|바이오|상용|유기성 폐기물 혐기소화 가스를 정제한 메탄.|LNG 설비에 그대로 사용, 탄소중립에 가까움|생산량 제한, 메탄슬립 동일|LNG 추진선에서 바이오LNG로 혼합 사용|LNG 엔진 호환(드롭인)
+DME|CH₃OCH₃|가스|시범|가장 단순한 에테르. 세탄가 55~60, 약 -25℃/5bar 액화.|그을음 거의 없음, 압축착화 가능, 연소 깨끗|점도·윤활성 낮음, 고무 실링 부식, 에너지밀도 낮음|연료 분사 시험 및 소규모 실증|디젤 엔진 개조 필요, 연료펌프·실링 교체
+에탄|C₂H₆|가스|상용|천연가스 속 두 번째 성분. 약 -89℃ 액화.|천연가스보다 탄소당 효율 좋고 SOx 없음|극저온 필요, CO₂ 배출, 공급처 제한|에탄 운반선(VLEC)에서 화물 연료로 사용|2행정 이중연료 엔진 상용, 화물 연료 겸용
+HVO|수소화 식물유(파라핀계 탄화수소)|바이오|상용|식물유·폐유를 수소처리한 재생디젤. 산소 없음.|경유와 거의 동일해 100% 사용 가능, 저장성 우수, 입자·NOx 감소|원료(폐유지) 공급 한계, 가격 높음|페리·예인선·크루즈선 등에서 사용|드롭인 연료, 엔진 개조 불필요
+e-메탄올|CH₃OH(CO₂+재생수소 합성)|합성|시범|재생전력 수소와 포집 CO₂로 합성한 메탄올.|순환형 탄소로 거의 탄소중립, 메탄올 설비 호환|전력·CO₂ 필요, 생산비 높음, 물량 적음|소규모 상업 생산 시작 단계|메탄올 엔진 그대로 사용
+e-디젤|C₁₀~C₂₀ 합성 파라핀(피셔-트롭시)|합성|연구|합성가스를 FT 합성해 만든 디젤 대체유.|기존 엔진·인프라 호환, 황·방향족 거의 없음|합성 효율 낮고 비용 높음|파일럿 플랜트와 시험 단계|드롭인 사용 가능
+e-LNG|CH₄(메탄화 반응)|합성|연구|재생수소와 CO₂의 사바티에 반응으로 합성.|LNG 인프라 호환, 순환형 탄소|에너지 손실 큼, 고비용, 메탄슬립 존재|소규모 실증 단계|LNG 엔진 호환
+e-LPG|C₃H₈/C₄H₁₀(합성)|합성|연구|합성가스 기반으로 프로판·부탄을 만든 연료.|LPG 설비 호환, 탄소중립 가능|생산 경로 미성숙, 고비용|연구 및 초기 실증|LPG 엔진 호환 예상
+열분해 바이오오일|복잡한 산소 함유 유기화합물 혼합물|바이오|연구|바이오매스를 급속 열분해해 얻는 산성·고산소 액체.|폐자원 활용, 액체 연료화|산성·부식성, 발열량 낮음, 불안정, 점도 높음|보일러·엔진 시험 연구|정제(업그레이딩) 없이는 엔진 사용이 어려움
+OME|CH₃O(CH₂O)ₙCH₃ (n=3~5)|합성|연구|메탄올·포름알데히드에서 만든 옥시메틸렌에테르.|C-C 결합이 없어 그을음 거의 없음, 세탁착화 가능|발열량 낮음(약 19MJ/kg), 윤활성 낮음, 고비용|엔진 시험 및 연구|디젤 개조 필요, 입자·NOx 동시 저감 연구
+바이오메탄올|CH₃OH(바이오매스 유래)|바이오|시범|바이오가스·가스화 합성가스로 만든 메탄올.|메탄올 설비 호환, 생애주기 CO₂ 낮음|원료 수급 제한, 비용 높음|메탄올 추진선 일부가 사용 중|메탄올 엔진 그대로 사용
+포름산|HCOOH|합성|연구|가장 단순한 카복실산. 수소 저장 매체로도 연구.|상온 액체, 수소 운반체 가능, CO₂ 환원으로 합성 가능|부식성 강함, 에너지 밀도 매우 낮음(약 5.3MJ/kg)|연료전지·수소 저장 실험 연구|대형 선박 연료로는 연구 단계`.split('\n').map(l=>{const a=l.split('|');return{n:a[0],f:a[1],c:a[2],s:a[3],a:a[4],p:a[5],d:a[6],u:a[7],h:a[8]}});
+const CITY=['도쿄 Tokyo','오슬로 Oslo','리우 Rio','카이로 Cairo','시드니 Sydney','파리 Paris','서울 Seoul','리마 Lima','두바이 Dubai','로마 Rome','뭄바이 Mumbai','밴쿠버 Vancouver'];
+const COL=['#2ef','#fa3','#9ab','#f5a','#7f7'];
+const WL='<path d="M0 42Q15 39 30 42T60 42T90 42T120 42" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="1.5"/>';
+const SV=[c=>`<path d="M8 36L4 18L24 28Z" fill="${c}"/><path d="M4 36L30 26L96 24L117 33L104 41H10Z" fill="url(#h0)"/><path d="M44 26L58 13H80L91 25Z" fill="#bdf" opacity=".85"/><path d="M60 14L56 25" stroke="#fff" opacity=".6"/><path d="M12 35L108 31" stroke="#fff" stroke-width="1.5" opacity=".8"/><path d="M16 38L100 36" stroke="#0ff" stroke-width="1"/><circle cx="6" cy="37" r="3" fill="#0ff"/>`,
+c=>`<path d="M6 32H113L100 42H16Z" fill="url(#h1)"/><rect x="18" y="22" width="80" height="10" rx="2" fill="#f4f8ff"/>${[...Array(11)].map((_,i)=>`<rect x="22" y="25" width="4" height="3" fill="#39f" transform="translate(${i*6.7} 0)"/>`).join('')}<rect x="30" y="14" width="52" height="8" rx="2" fill="#e6eefc"/>${[...Array(7)].map((_,i)=>`<rect x="34" y="16.5" width="4" height="3" fill="#39f" transform="translate(${i*6.5} 0)"/>`).join('')}<rect x="62" y="7" width="18" height="7" fill="#cde"/><rect x="38" y="3" width="9" height="11" fill="${c}"/><rect x="38" y="6" width="9" height="2" fill="#fff"/><path d="M10 34H110" stroke="#fff" stroke-width="1.5"/><path d="M92 14V4M90 6H94" stroke="#ccc"/>`,
+c=>`<path d="M2 34L16 28H100L118 33L106 41H8Z" fill="url(#h2)"/><path d="M36 28L42 17H74L80 28Z" fill="#8a97a6"/><rect x="48" y="10" width="18" height="7" fill="#6f7c8b"/><path d="M57 10V2" stroke="#ccc" stroke-width="1.5"/><circle cx="57" cy="5" r="3" fill="#ddd"/><path d="M50 6H64" stroke="#ccc"/><rect x="84" y="23" width="10" height="5" fill="#5b6672"/><path d="M94 25H112" stroke="#444" stroke-width="2"/><rect x="18" y="24" width="10" height="4" fill="#5b6672"/><path d="M28 26H38" stroke="#444" stroke-width="2"/>${[...Array(4)].map((_,i)=>`<rect x="${52+i*6}" y="21" width="4" height="4" fill="#333"/>`).join('')}<rect x="6" y="29" width="8" height="2" fill="#bbb"/><path d="M12 36H108" stroke="#cc3" stroke-width="1"/>`,
+c=>`<path d="M2 38Q42 24 118 31Q108 41 60 41Z" fill="url(#h3)"/><path d="M44 30Q60 14 82 28Z" fill="#bdf" opacity=".85"/><path d="M52 28Q62 20 74 27" stroke="#fff" fill="none"/><path d="M4 38L2 26H12L16 34Z" fill="${c}"/><path d="M20 36Q60 28 112 32" stroke="#fff" stroke-width="2" fill="none"/><path d="M112 33L119 34L110 38M100 40L116 41" stroke="#fff" fill="none"/>`,
+c=>`<path d="M6 30H110L116 36H12Z" fill="url(#h4)"/><path d="M10 38H112L118 43H16Z" fill="url(#h4)" opacity=".8"/><rect x="14" y="26" width="92" height="5" fill="#cfe"/><rect x="34" y="14" width="44" height="12" rx="5" fill="#dff" opacity=".9"/><path d="M40 20H72" stroke="#39f" stroke-width="3"/><circle cx="56" cy="12" r="4" fill="#fff"/><circle cx="56" cy="12" r="2" fill="#0ff"/><path d="M86 26V12L94 26" fill="${c}"/><path d="M12 34H108" stroke="#0ff" stroke-width="1.5"/><circle cx="10" cy="40" r="2.5" fill="#0ff"/>`];
+const svg=d=>`<svg viewBox="0 0 120 48"><defs><linearGradient id="h${d}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${COL[d]}"/><stop offset="1" stop-color="#012"/></linearGradient></defs>${SV[d](COL[d])}${WL}</svg>`;
+const HZ=[{n:'폭풍우',d:'파도와 강풍으로 속도가 크게 줄어듭니다.',m:.5,t:[4,6],c:''},{n:'해일성 큰 파도',d:'거대한 파도로 일시적으로 거의 정지합니다.',m:.06,t:[2,2.5],c:''},{n:'짙은 해무',d:'시야 불량으로 항해 속도가 감소합니다.',m:.6,t:[4,6],c:'fog'},{n:'강한 역방향 해류',d:'진행 방향 반대 해류로 속도가 줄어듭니다.',m:.4,t:[4,5],c:''},{n:'부유 빙산 경보',d:'충돌 위험으로 일시 정지합니다.',m:.04,t:[2,2.5],c:'ice'}];
+let M,R,prev='ready',pts=+localStorage.getItem('oceanPts')||0,cat='전체';
+const rnd=n=>Math.floor(Math.random()*n),shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
+function show(id){document.querySelectorAll('.scr').forEach(e=>e.classList.remove('on'));$('#'+id).classList.add('on');}
+function upPts(){$('#tp').textContent=pts.toLocaleString()}
+function newMatch(){const ds=shuf([0,1,2,3,4]),cs=shuf(CITY).slice(0,4);
+ M={ships:ds.map((d,i)=>({i,d,name:i?cs[i-1]:$('#pname').value||'나의 선박',pref:rnd(21),player:i==0})),offer:shuf([...Array(21).keys()]).slice(0,3),sel:null,open:null};renderReady()}
+function det(f){return `<h3>${f.n} <span class="fm">${f.f}</span></h3><p><i>분류:</i> ${f.c} · ${f.s=='상용'?'실제 활용 중':f.s=='시범'?'시범·실증 단계':'연구 단계'}</p><p><i>화학적 특징:</i> ${f.a}</p><p><i>장점:</i> ${f.p}</p><p><i>단점·주의:</i> ${f.d}</p><p><i>활용 현황:</i> ${f.u}</p><p><i>선박 연료 특징:</i> ${f.h}</p>`}
+function renderReady(){const p=M.ships[0];$('#pship').innerHTML=`<div style="width:220px;margin:auto">${svg(p.d)}</div><b>${p.name}</b> <span class="tag">PLAYER</span>`;
+ $('#plist').innerHTML=M.ships.map(s=>`<div class="sl ${s.player?'me':''}">${svg(s.d)}<b>${s.name}</b>${s.player?'<span class="tag">PLAYER</span>':''}</div>`).join('');
+ $('#offer').innerHTML=M.offer.map(i=>`<div class="fc ${M.sel===i?'sel':''}" data-i="${i}"><b>${FD[i].n}</b> <span class="fm">${FD[i].f}</span><div style="font-size:12px;color:#8cd">${FD[i].c} · ${FD[i].s}</div></div>`).join('');
+ if(M.open!=null)$('#od').innerHTML=det(FD[M.open]);else $('#od').textContent='연료 카드를 누르면 선택되고 상세 설명이 나옵니다.';
+ $('#go').disabled=M.sel==null;upPts()}
+$('#offer').onclick=e=>{const c=e.target.closest('.fc');if(!c)return;M.open=M.sel=+c.dataset.i;renderReady()};
+
+$('#pname').oninput=e=>{M.ships[0].name=e.target.value||'나의 선박';renderReady()};
+function startRace(){if(M.sel==null||R&&R.run)return;
+ const ships=M.ships.map(s=>{const f=s.player?M.sel:rnd(21),fd=FD[f],pf=FD[s.pref];
+  let fit=f==s.pref?1.1:fd.c==pf.c?1.03:.97;fit*=.93+Math.random()*.14;
+  return{...s,fuel:f,fit,pos:0,fin:0,em:1,ev:Math.random()}});
+ R={ships,t:0,run:true,order:[],hz:{lane:rnd(5),start:2+Math.random()*4,type:rnd(5),on:0,shown:0},paid:false};
+ $('#lanes').innerHTML=ships.map((s,i)=>`<div class="lane ${s.player?'me2':''}" id="l${i}"><span class="nm">${i+1}번 ${s.name}${s.player?' ★PLAYER':''}</span><span class="km"></span><div class="wk"></div><div class="sh">${svg(s.d)}</div><div class="fl"></div></div>`).join('');
+ $('#ban').style.display='none';show('race');let last=performance.now();
+ const loop=n=>{if(!R.run)return;let dt=Math.min((n-last)/1000,.1);last=n;R.t+=dt;tick(dt);if(R.run)requestAnimationFrame(loop)};requestAnimationFrame(loop)}
+function tick(dt){const h=R.hz,H=HZ[h.type];
+ if(!h.shown&&R.t>=h.start){h.shown=1;h.on=1;h.end=R.t+H.t[0]+Math.random()*(H.t[1]-H.t[0]);const s=R.ships[h.lane];
+  const b=$('#ban');b.style.display='block';b.innerHTML=`⚠️ <b>${H.n}</b> 발생! — ${H.d}<br>발생 경로: <b>${h.lane+1}번</b> · 영향 선박: <b>${s.name}</b> · 예상 지속: 약 ${Math.round(h.end-R.t)}초`;
+  const l=$('#l'+h.lane);l.classList.add('hz');if(H.c)l.classList.add(H.c);document.body.classList.add('shake');setTimeout(()=>document.body.classList.remove('shake'),700)}
+ if(h.on&&R.t>=h.end){h.on=0;const l=$('#l'+h.lane);l.className='lane'+(R.ships[h.lane].player?' me2':'');$('#ban').innerHTML+='<br>✅ 재해가 종료되었습니다.'}
+ R.ships.forEach((s,i)=>{if(s.fin)return;s.ev-=dt;if(s.ev<=0){const r=Math.random(),ok=s.fuel==s.pref;s.em=r<(ok?.3:.2)?1.5:r<.45?.55:1;s.ev=.8+Math.random()*1.5}
+  let m=s.fit*s.em*(1+(Math.random()-.5)*.12)*(R.t>14?1+(R.t-14)*.6:1);if(h.on&&h.lane==i)m*=H.m;
+  s.pos+=.85*m*dt;if(s.pos>=10){s.pos=10;s.fin=R.t;R.order.push(s)}
+  const l=$('#l'+i);const sh=l.querySelector('.sh');sh.classList.toggle('bo',s.em>1&&!s.fin);sh.style.left=(s.pos/10*86)+'%';l.querySelector('.wk').style.width=(s.pos/10*86+3)+'%';l.querySelector('.km').textContent=(s.em>1&&!s.fin?'⚡BOOST ':'')+(s.fin?'🏁 도착 '+s.fin.toFixed(1)+'초':`${s.pos.toFixed(2)}km / 남은 ${(10-s.pos).toFixed(2)}km`)});
+ const rk=R.ships.slice().sort((a,b)=>(b.fin?1e3-b.fin:b.pos)-(a.fin?1e3-a.fin:a.pos));
+ $('#rank').innerHTML='📊 '+rk.map((s,i)=>`${i+1}위 ${s.player?'<b style="color:#fc4">'+s.name+'</b>':s.name}`).join(' · ');$('#rt').textContent=R.t.toFixed(1)+'초';
+ if(R.order.length==5){R.run=false;setTimeout(finish,800)}}
+function finish(){if(R.paid)return;R.paid=true;const o=R.order,pr=o.findIndex(s=>s.player)+1,g=[0,10000,5000,2000][pr]||0;pts+=g;localStorage.setItem('oceanPts',pts);
+ $('#rsum').innerHTML=`당신의 순위: <b style="color:#fc4;font-size:30px">${pr}위</b> · 획득 <b>${g.toLocaleString()}P</b> · 내 포인트 <b>${pts.toLocaleString()}P</b>`;
+ $('#rtab').innerHTML='<tr><th>순위</th><th>선박</th><th>이름</th><th>연료</th><th>기록</th></tr>'+o.map((s,i)=>`<tr class="${s.player?'me':''}"><td>${i+1}위</td><td>${svg(s.d)}</td><td>${s.name}${s.player?' <span class="tag">PLAYER</span>':''}</td><td>${FD[s.fuel].n}</td><td>${s.fin.toFixed(1)}초</td></tr>`).join('');upPts();show('res')}
+$('#go').onclick=startRace;
+$('#again').onclick=()=>{M.ships[0].name=$('#pname').value||'나의 선박';newMatch();show('ready')};
+$('#back').onclick=()=>{M.sel=null;renderReady();show('ready')};
+function openDex(from){prev=from;renderDex();show('dex')}
+$('#dexb').onclick=()=>openDex('ready');$('#dex2').onclick=()=>openDex('res');$('#dback').onclick=()=>show(prev);
+function renderDex(){const cs=['전체','화석','가스','알코올','바이오','합성','무탄소'];
+ $('#cats').innerHTML=cs.map(c=>`<button class="${c==cat?'g':''}" data-c="${c}">${c}</button>`).join('');const q=$('#q').value.trim().toLowerCase();
+ $('#dg').innerHTML=FD.map((f,i)=>({f,i})).filter(x=>(cat=='전체'||x.f.c==cat)&&(x.f.n+x.f.f).toLowerCase().includes(q)).map(x=>`<div class="fc" data-i="${x.i}"><b>${x.i+1}. ${x.f.n}</b><div class="fm">${x.f.f}</div><div style="font-size:12px;color:#8cd">${x.f.c} · ${x.f.s}</div></div>`).join('')}
+$('#q').oninput=renderDex;$('#cats').onclick=e=>{if(e.target.dataset.c){cat=e.target.dataset.c;renderDex()}};
+$('#dg').onclick=e=>{const c=e.target.closest('.fc');if(c){$('#md').innerHTML=det(FD[+c.dataset.i]);$('#mod').classList.add('on')}};
+$('#mc').onclick=()=>$('#mod').classList.remove('on');
+newMatch();
+</script></body></html>
