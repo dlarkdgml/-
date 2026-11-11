@@ -42,7 +42,8 @@ table{width:100%;border-collapse:collapse}td,th{padding:6px;border-bottom:1px so
 .lane .sh.bo{filter:drop-shadow(0 0 4px #fff176) drop-shadow(0 0 10px #ffd400) drop-shadow(0 0 20px #ffb300)}
 #af input,#af select,#abody input,#abody select{margin:5px 0;width:100%;padding:9px;border-radius:8px;border:1px solid #0df;background:#021a30;color:#fff;font-size:15px}#abody td input{width:auto}
 #adm .pn{border-color:#0ff;background:#021426ee;font-family:ui-monospace,Consolas,monospace}#adm h2{color:#0ff;letter-spacing:3px}#abody button{padding:5px 9px;font-size:13px}#abody textarea{margin:5px 0}
-</style></head><body>
+</style><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+</head><body>
 <header><div><h1>🌊 해양 경주</h1><div class="sub">OCEAN FUEL RACE : 대양의 승부</div></div><div><span id="usr" class="sub"></span> <button id="adb" hidden>🛰️ ADMIN</button><button id="lo" hidden>로그아웃</button> <span class="pts"><span id="tp">0</span> P</span></div></header>
 
 <section id="ready" class="scr"><div id="nt"></div><div class="two">
@@ -61,6 +62,12 @@ table{width:100%;border-collapse:collapse}td,th{padding:6px;border-bottom:1px so
 <div id="mod" class="mod"><div class="pn"><div id="md" class="det"></div><button id="mc">닫기</button></div></div>
 
 <script>
+/* ================= ★ Supabase 연결 설정 (이 두 줄만 본인 값으로 수정) ================= */
+const SB_URL='https://bprjpwrywnimonyhsktl.supabase.co'; // Supabase > Settings > API > Project URL
+const SB_KEY='sb_publishable_yDpcg8TyFquPo2td92muJw_FhJq2tyl';                      // Supabase > Settings > API > anon public key (service_role 키 절대 금지)
+/* ================================================================================ */
+const CONF=!SB_URL.includes('YOUR')&&!SB_KEY.includes('YOUR');
+const sbc=(CONF&&window.supabase)?window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,storageKey:'oceanAuth'}}):null; // 로그인 상태 자동 유지
 const $=s=>document.querySelector(s);
 // 이름|화학식|분류|실용단계|화학적 특징|장점|단점/주의|활용 현황|선박 연료 특징
 const FD=`경유(MGO)|C₁₀~C₂₀ 탄화수소 혼합물|화석|상용|증류로 얻는 저점도 석유계 연료. 발열량 약 42.7MJ/kg.|에너지 밀도 높음, 인프라 완비, 저황이라 SOx 규제(ECA) 대응 쉬움|CO₂ 배출, NOx·입자상물질 발생|전 세계 선박에서 널리 사용|디젤엔진에 바로 사용, 보조기관·소형선에 흔함
@@ -154,26 +161,23 @@ $('#q').oninput=renderDex;$('#cats').onclick=e=>{if(e.target.dataset.c){cat=e.ta
 $('#dg').onclick=e=>{const c=e.target.closest('.fc');if(c){$('#md').innerHTML=det(FD[+c.dataset.i]);$('#mod').classList.add('on')}};
 $('#mc').onclick=()=>$('#mod').classList.remove('on');
 
-// ===== Supabase 연동 (SB_URL / SB_KEY 만 본인 값으로 교체. service_role 키는 절대 넣지 마세요) =====
-const SB_URL='https://YOUR-PROJECT.supabase.co',SB_KEY='YOUR_ANON_KEY',DOM='@ocean.game',PW=p=>p+'~ocean';
-const CONF=!SB_URL.includes('YOUR'),ID_RE=/^20[1-7](0[1-9]|1\d|20)$/,QS=['첫 반려동물 이름은?','태어난 도시는?','가장 좋아하는 바다는?','졸업한 초등학교는?'];
-let USER=null,SES=null,SET={speed:1,maint:false};
+// ===== Supabase 연동 (Supabase JS 클라이언트) =====
+const DOM='@ocean.game',PW=p=>p+'~ocean',ID_RE=/^20[1-7](0[1-9]|1\d|20)$/,QS=['첫 반려동물 이름은?','태어난 도시는?','가장 좋아하는 바다는?','졸업한 초등학교는?'];
+let USER=null,SET={speed:1,maint:false};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),msg=t=>{$('#am').textContent=t};
-async function sb(path,o={}){if(!CONF)throw new Error('Supabase 설정이 필요합니다.');
- if(SES&&Date.now()>SES.exp&&!o.r){const rt=SES.refresh_token;SES=null;try{saveSes(await sb('/auth/v1/token?grant_type=refresh_token',{m:'POST',b:{refresh_token:rt},r:1}))}catch(e){logout();throw e}}
- const r=await fetch(SB_URL+path,{method:o.m||'GET',headers:{apikey:SB_KEY,'Content-Type':'application/json',Authorization:'Bearer '+(SES?SES.access_token:SB_KEY),...(o.h||{})},body:o.b?JSON.stringify(o.b):undefined});
+async function sb(path,o={}){if(!sbc)throw new Error('Supabase 설정이 필요합니다.');const{data}=await sbc.auth.getSession();const tk=data.session?data.session.access_token:SB_KEY;
+ const r=await fetch(SB_URL+path,{method:o.m||'GET',headers:{apikey:SB_KEY,'Content-Type':'application/json',Authorization:'Bearer '+tk,...(o.h||{})},body:o.b?JSON.stringify(o.b):undefined});
  const t=await r.text();let j=null;try{j=t?JSON.parse(t):null}catch{j=t}
  if(!r.ok)throw new Error((j&&(j.message||j.msg||j.error_description||j.error))||'요청 실패');return j}
-const rpc=(f,b)=>sb('/rest/v1/rpc/'+f,{m:'POST',b:b||{}});
-function saveSes(j){SES={access_token:j.access_token,refresh_token:j.refresh_token,exp:Date.now()+j.expires_in*1000-60000};localStorage.setItem('oceanSes',JSON.stringify(SES))}
-async function restore(){try{SES=JSON.parse(localStorage.getItem('oceanSes'));if(!SES)return false;return await loadUser()}catch(e){SES=null;return false}}
-async function loadUser(){const u=await sb('/auth/v1/user');const p=(await sb('/rest/v1/profiles?id=eq.'+u.id+'&select=*'))[0];if(!p)throw 0;
+async function rpc(f,b){if(!sbc)throw new Error('Supabase 설정이 필요합니다.');const{data,error}=await sbc.rpc(f,b||{});if(error)throw new Error(error.message);return data}
+async function restore(){try{const{data}=await sbc.auth.getSession();if(!data.session)return false;return await loadUser()}catch(e){return false}}
+async function loadUser(){const{data:{user}}=await sbc.auth.getUser();if(!user)throw 0;const p=(await sb('/rest/v1/profiles?id=eq.'+user.id+'&select=*'))[0];if(!p)throw 0;
  if(p.banned){await logout();msg('정지된 계정입니다. 관리자에게 문의하세요.');return false}
  USER=p;pts=p.points;await loadMeta();enter();return true}
 async function loadMeta(){try{(await sb('/rest/v1/settings?select=*')).forEach(r=>SET[r.key]=r.value);(await sb('/rest/v1/fuel_overrides?select=*')).forEach(r=>FD[r.idx]&&Object.assign(FD[r.idx],r.data));
  const n=await sb('/rest/v1/notices?select=*&order=created_at.desc&limit=3');$('#nt').innerHTML=n.map(x=>`<div class="pn" style="margin-bottom:6px">📢 <b>${esc(x.title)}</b> ${esc(x.body)}</div>`).join('')}catch(e){}}
-function enter(){$('#usr').textContent=USER?USER.uid+(USER.role=='admin'?' 👑':''):'게스트';$('#lo').hidden=false;$('#adb').hidden=!(USER&&USER.role==='admin');newMatch();show('ready')}
-async function logout(){try{if(SES)await sb('/auth/v1/logout',{m:'POST',r:1})}catch{}SES=null;USER=null;localStorage.removeItem('oceanSes');pts=+localStorage.getItem('oceanPts')||0;$('#lo').hidden=$('#adb').hidden=true;$('#usr').textContent='';upPts();show('auth');renderAuth('in')}
+function enter(){$('#usr').textContent=USER.uid+(USER.role=='admin'?' 👑':'');$('#lo').hidden=false;$('#adb').hidden=USER.role!=='admin';newMatch();show('ready')}
+async function logout(){try{if(sbc)await sbc.auth.signOut()}catch{}USER=null;$('#lo').hidden=$('#adb').hidden=true;$('#usr').textContent='';pts=0;upPts();show('auth');renderAuth('in')}
 function renderAuth(t){const q=`<select id="fq">${QS.map(x=>`<option>${x}</option>`).join('')}</select>`,id='<input id="fi" inputmode="numeric" maxlength="7" placeholder="아이디">';
  $('#af').innerHTML={in:id+'<input id="fp" type="password" placeholder="비밀번호"><button class="g" data-do="in">로그인</button><div style="font-size:12px;color:#8cd;margin-top:6px">비밀번호를 잊으셨다면 관리자에게 문의하세요.</div>',
  up:id+'<div style="font-size:12px;color:#8cd">형식: 20 + (1~7) + (01~20) 예) 20105</div><input id="fp" type="password" placeholder="비밀번호 (4자리 이상)"><input id="fp2" type="password" placeholder="비밀번호 확인">'+'<button class="g" data-do="up">가입하기</button>',
@@ -181,12 +185,12 @@ function renderAuth(t){const q=`<select id="fq">${QS.map(x=>`<option>${x}</optio
 $('#atab').onclick=e=>e.target.dataset.t&&renderAuth(e.target.dataset.t);
 $('#af').onclick=async e=>{const d=e.target.dataset.do;if(!d)return;const id=$('#fi').value.trim(),pw=$('#fp').value;
  if(!(ID_RE.test(id)||d=='in'&&id=='lgh0221'))return msg('아이디는 20 + (1~7) + (01~20) 형식의 5자리 숫자입니다.');
- if(!CONF)return msg('Supabase 설정이 필요합니다. index.html 상단의 SB_URL, SB_KEY를 입력하세요.');
+ if(!sbc)return msg(CONF?'Supabase 라이브러리를 불러오지 못했습니다. 인터넷 연결을 확인하세요.':'Supabase 설정이 필요합니다. index.html 상단의 SB_URL, SB_KEY를 입력하세요.');
  try{if(d=='in'){if(await rpc('login_gate',{p_uid:id}))return msg('로그인 시도 초과: 15분 후 다시 시도하세요.');
-   let j;try{j=await sb('/auth/v1/token?grant_type=password',{m:'POST',b:{email:id+DOM,password:PW(pw)}})}catch(x){await rpc('login_report',{p_uid:id,p_ok:false});throw new Error('아이디 또는 비밀번호가 올바르지 않습니다.')}
-   await rpc('login_report',{p_uid:id,p_ok:true});saveSes(j);await loadUser();return}
+   const{error}=await sbc.auth.signInWithPassword({email:id+DOM,password:PW(pw)});if(error){await rpc('login_report',{p_uid:id,p_ok:false});throw new Error('아이디 또는 비밀번호가 올바르지 않습니다.')}
+   await rpc('login_report',{p_uid:id,p_ok:true});await loadUser();return}
   if(pw.length<4)return msg('비밀번호는 4자리 이상이어야 합니다.');if(pw!==$('#fp2').value)return msg('비밀번호가 일치하지 않습니다.');
-  if(d=='up'){try{await sb('/auth/v1/signup',{m:'POST',b:{email:id+DOM,password:PW(pw)}})}catch(x){return msg(/already|registered|exists/i.test(x.message)?'이미 사용 중인 아이디입니다.':'가입 실패: '+x.message)}renderAuth('in');msg('가입 완료! 로그인해 주세요.')}
+  if(d=='up'){{const{error}=await sbc.auth.signUp({email:id+DOM,password:PW(pw)});if(error)return msg(/already|registered|exists/i.test(error.message)?'이미 사용 중인 아이디입니다.':'가입 실패: '+error.message);await sbc.auth.signOut()}renderAuth('in');msg('가입 완료! 로그인해 주세요.')}
   else{const q=$('#fq').value,a=$('#fa').value.trim(),ok=await rpc('reset_pw',{p_uid:id,p_q:q,p_ans:a,p_new:PW(pw)});renderAuth('in');msg(ok?'비밀번호가 재설정되었습니다. 로그인해 주세요.':'아이디 또는 답변이 올바르지 않습니다.')}
  }catch(x){msg(/locked/.test(x.message)?'시도 횟수 초과: 15분 후 다시 시도하세요.':x.message)}};
 $('#lo').onclick=()=>logout();$('#adb').onclick=()=>{show('adm');renderAdmin()};$('#aback').onclick=()=>show('ready');
@@ -215,6 +219,6 @@ $('#adm').onclick=async e=>{const d=e.target.dataset;if(d.t)return renderAdmin(d
   if(d.a=='fsave'){const i=+$('#fs').value,o=JSON.parse($('#ft').value),dt={};'apdhu'.split('').forEach(k=>{if(typeof o[k]=='string')dt[k]=o[k].slice(0,400)});
    await sb('/rest/v1/fuel_overrides?on_conflict=idx',{m:'POST',h:{Prefer:'resolution=merge-duplicates'},b:{idx:i,data:dt}});Object.assign(FD[i],dt);alert('저장되었습니다.')}
  }catch(err){alert(err.message)}};
-newMatch();show('auth');renderAuth('in');if(CONF)restore();else msg('Supabase 설정이 필요합니다. index.html 상단의 SB_URL, SB_KEY를 입력하세요.');
+newMatch();show('auth');renderAuth('in');if(sbc)restore();else msg(CONF?'Supabase 라이브러리를 불러오지 못했습니다. 인터넷 연결을 확인하세요.':'Supabase 설정이 필요합니다. index.html 상단의 SB_URL, SB_KEY를 입력하세요.');
 
 </script></body></html>
