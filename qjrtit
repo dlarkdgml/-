@@ -100,13 +100,9 @@ button{font:inherit;cursor:pointer}
       <label class="auth-field" for="signupUid">아이디</label>
       <input class="auth-input" id="signupUid" placeholder="오션벳 아이디 형식 (예: 20101)">
       <label class="auth-field" for="signupPassword">비밀번호</label>
-      <input class="auth-input" id="signupPassword" type="password" autocomplete="new-password" placeholder="비밀번호 6자 이상">
+      <input class="auth-input" id="signupPassword" type="password" autocomplete="new-password" placeholder="비밀번호 4자리 이상">
       <label class="auth-field" for="signupPassword2">비밀번호 확인</label>
       <input class="auth-input" id="signupPassword2" type="password" autocomplete="new-password" placeholder="비밀번호 다시 입력">
-      <label class="auth-field" for="signupQuestion">보안 질문</label>
-      <input class="auth-input" id="signupQuestion" placeholder="예: 내가 좋아하는 색은?">
-      <label class="auth-field" for="signupAnswer">보안 답변</label>
-      <input class="auth-input" id="signupAnswer" placeholder="보안 답변">
       <button class="auth-submit" id="signupBtn">회원가입</button>
       <button class="auth-switch" id="showLogin">로그인으로 돌아가기</button>
     </div>
@@ -162,12 +158,12 @@ button{font:inherit;cursor:pointer}
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onerror="this.onerror=null;this.src='https://unpkg.com/@supabase/supabase-js@2';"></script>
 <script>
 
 // 1) 아래 두 값을 오션벳과 같은 Supabase 프로젝트의 Project URL / anon public key로 채우세요.
-const SB_URL = "SUPABASE_PROJECT_URL을_여기에_입력";
-const SB_ANON_KEY = "SUPABASE_ANON_PUBLIC_KEY를_여기에_입력";
+const SB_URL = "https://bprjpwrywnimonyhsktl.supabase.co";
+const SB_ANON_KEY = "sb_publishable_yDpcg8TyFquPo2td92muJw_FhJq2tyl";
 
 const $ = id => document.getElementById(id);
 const clientReady = window.supabase && SB_URL.startsWith("https://") && SB_ANON_KEY.length > 20;
@@ -241,7 +237,7 @@ async function afterAuth(sessionUser){
   showGame();
 }
 async function login(){
-  if(!sb){authMessage("Supabase URL과 anon public key를 먼저 입력해야 합니다.",true);return;}
+  if(!sb){authMessage(!window.supabase ? "Supabase 라이브러리를 불러오지 못했습니다. 인터넷 연결을 확인하고 새로고침하세요." : "Supabase URL 또는 Publishable/anon 키를 확인하세요.",true);return;}
   const uid=$("loginUid").value.trim(), password=$("loginPassword").value;
   if(!uid||!password){authMessage("아이디와 비밀번호를 입력하세요.",true);return;}
   $("loginBtn").disabled=true;
@@ -249,24 +245,30 @@ async function login(){
     const {data,error}=await sb.auth.signInWithPassword({email:emailFromUid(uid),password});
     if(error) throw error;
     await afterAuth(data.user);
-  }catch(e){authMessage("로그인 실패: "+e.message,true);}
+  }catch(e){
+    console.error("윤건 클리커 로그인 오류:", e);
+    const msg = (e && e.message) ? e.message : String(e);
+    if (msg.toLowerCase().includes("failed to fetch") || e instanceof TypeError) {
+      authMessage("Supabase 서버에 연결하지 못했습니다. 인터넷 연결과 프로젝트 상태를 확인하세요. HTML 파일을 더블클릭해 실행 중이라면 GitHub Pages(https 주소)에 올려 접속해 보세요.", true);
+    } else {
+      authMessage("로그인 실패: "+msg,true);
+    }
+  }
   finally{$("loginBtn").disabled=false;}
 }
 async function signup(){
-  if(!sb){authMessage("Supabase URL과 anon public key를 먼저 입력해야 합니다.",true);return;}
+  if(!sb){authMessage(!window.supabase ? "Supabase 라이브러리를 불러오지 못했습니다. 인터넷 연결을 확인하고 새로고침하세요." : "Supabase URL 또는 Publishable/anon 키를 확인하세요.",true);return;}
   const uid=$("signupUid").value.trim(), pw=$("signupPassword").value, pw2=$("signupPassword2").value;
-  const sq=$("signupQuestion").value.trim(), sa=$("signupAnswer").value.trim();
   if(!/^20[1-7](0[1-9]|1[0-9]|20)$/.test(uid) && uid!=="lgh0221"){
     authMessage("오션벳에서 사용하는 아이디 형식이 아닙니다.",true);return;
   }
-  if(pw.length<6){authMessage("비밀번호는 6자 이상 입력하세요.",true);return;}
+  if(pw.length<4){authMessage("비밀번호는 4자리 이상 입력하세요.",true);return;}
   if(pw!==pw2){authMessage("비밀번호가 서로 다릅니다.",true);return;}
-  if(!sq||!sa){authMessage("보안 질문과 답변을 입력하세요.",true);return;}
   $("signupBtn").disabled=true;
   try{
     const {data,error}=await sb.auth.signUp({
       email:emailFromUid(uid),password:pw,
-      options:{data:{sq,sa}}
+      options:{data:{sq:"",sa:""}}
     });
     if(error) throw error;
     if(data.session){await afterAuth(data.user);}
@@ -346,11 +348,35 @@ $("closeRank").addEventListener("click",()=>$("rankScreen").classList.remove("op
 $("rankScreen").addEventListener("click",e=>{if(e.target===$("rankScreen"))$("rankScreen").classList.remove("open");});
 
 (async function init(){
-  if(!clientReady){authMessage("아래 HTML 코드의 SB_URL과 SB_ANON_KEY에 오션벳 Supabase 연결값을 입력하세요.",true);return;}
+  if(!clientReady){
+    authMessage(!window.supabase
+      ? "Supabase 라이브러리를 불러오지 못했습니다. 인터넷 연결 또는 CDN 접근을 확인하세요."
+      : "SB_URL 또는 SB_ANON_KEY 값을 확인하세요.", true);
+    return;
+  }
   try{
+    // Supabase Auth endpoint에 실제로 연결되는지 먼저 확인합니다.
+    const health = await fetch(SB_URL + "/auth/v1/health", {
+      method: "GET",
+      headers: { "apikey": SB_ANON_KEY }
+    });
+    if(!health.ok) {
+      const detail = await health.text().catch(() => "");
+      throw new Error("Supabase 응답 오류 (" + health.status + "). " + detail.slice(0,160));
+    }
+    authMessage("Supabase 연결 확인 완료. 오션벳 아이디와 비밀번호로 로그인하세요.");
     const {data:{session}}=await sb.auth.getSession();
     if(session) await afterAuth(session.user);
-  }catch(e){console.error(e);authMessage("세션 확인 실패: "+e.message,true);}
+  }catch(e){
+    console.error("Supabase 연결/세션 확인 오류:", e);
+    const msg = (e && e.message) ? e.message : String(e);
+    if (msg.toLowerCase().includes("failed to fetch") || e instanceof TypeError) {
+      const localHint = location.protocol === "file:" ? " 현재 파일을 컴퓨터에서 직접 열고 있습니다. GitHub Pages에 올려 https 주소로 접속해 보세요." : "";
+      authMessage("Supabase 서버에 연결하지 못했습니다. 인터넷 연결, 프로젝트 URL, Supabase 프로젝트 상태를 확인하세요." + localHint, true);
+    } else {
+      authMessage("Supabase 연결 확인 실패: " + msg, true);
+    }
+  }
 })();
 
 </script>
