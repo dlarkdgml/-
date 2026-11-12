@@ -42,8 +42,7 @@ table{width:100%;border-collapse:collapse}td,th{padding:6px;border-bottom:1px so
 .lane .sh.bo{filter:drop-shadow(0 0 4px #fff176) drop-shadow(0 0 10px #ffd400) drop-shadow(0 0 20px #ffb300)}
 #af input,#af select,#abody input,#abody select{margin:5px 0;width:100%;padding:9px;border-radius:8px;border:1px solid #0df;background:#021a30;color:#fff;font-size:15px}#abody td input{width:auto}
 #adm .pn{border-color:#0ff;background:#021426ee;font-family:ui-monospace,Consolas,monospace}#adm h2{color:#0ff;letter-spacing:3px}#abody button{padding:5px 9px;font-size:13px}#abody textarea{margin:5px 0}
-</style><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-</head><body>
+</style></head><body>
 <header><div><h1>🌊 해양 경주</h1><div class="sub">OCEAN FUEL RACE : 대양의 승부</div></div><div><span id="usr" class="sub"></span> <button id="adb" hidden>🛰️ ADMIN</button><button id="lo" hidden>로그아웃</button> <span class="pts"><span id="tp">0</span> P</span></div></header>
 
 <section id="ready" class="scr"><div id="nt"></div><div class="two">
@@ -62,12 +61,6 @@ table{width:100%;border-collapse:collapse}td,th{padding:6px;border-bottom:1px so
 <div id="mod" class="mod"><div class="pn"><div id="md" class="det"></div><button id="mc">닫기</button></div></div>
 
 <script>
-/* ================= ★ Supabase 연결 설정 (이 두 줄만 본인 값으로 수정) ================= */
-const SB_URL='https://bprjpwrywnimonyhsktl.supabase.co'; // Supabase > Settings > API > Project URL
-const SB_KEY='sb_publishable_yDpcg8TyFquPo2td92muJw_FhJq2tyl';                      // Supabase > Settings > API > anon public key (service_role 키 절대 금지)
-/* ================================================================================ */
-const CONF=!SB_URL.includes('YOUR')&&!SB_KEY.includes('YOUR');
-const sbc=(CONF&&window.supabase)?window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,storageKey:'oceanAuth'}}):null; // 로그인 상태 자동 유지
 const $=s=>document.querySelector(s);
 // 이름|화학식|분류|실용단계|화학적 특징|장점|단점/주의|활용 현황|선박 연료 특징
 const FD=`경유(MGO)|C₁₀~C₂₀ 탄화수소 혼합물|화석|상용|증류로 얻는 저점도 석유계 연료. 발열량 약 42.7MJ/kg.|에너지 밀도 높음, 인프라 완비, 저황이라 SOx 규제(ECA) 대응 쉬움|CO₂ 배출, NOx·입자상물질 발생|전 세계 선박에서 널리 사용|디젤엔진에 바로 사용, 보조기관·소형선에 흔함
@@ -130,14 +123,14 @@ function startRace(){if(M.sel==null||R&&R.run)return;if(SET.maint&&!(USER&&USER.
  const ships=M.ships.map(s=>{const f=s.player?M.sel:rnd(21),fd=FD[f],pf=FD[s.pref];
   let fit=f==s.pref?1.1:fd.c==pf.c?1.03:.97;fit*=.93+Math.random()*.14;
   return{...s,fuel:f,fit,pos:0,fin:0,em:1,ev:Math.random()}});
- R={ships,t:0,run:true,order:[],hz:{lane:rnd(5),start:2+Math.random()*4,type:rnd(5),on:0,shown:0},paid:false};if(USER){R.rp=rpc('start_race');R.rp.catch(()=>{})}
+ R={ships,t:0,run:true,order:[],hz:{lane:rnd(5),start:2+Math.random()*4,type:rnd(5),on:0,shown:0},paid:false};
  $('#lanes').innerHTML=ships.map((s,i)=>`<div class="lane ${s.player?'me2':''}" id="l${i}"><span class="nm">${i+1}번 ${s.name}${s.player?' ★PLAYER':''}</span><span class="km"></span><div class="wk"></div><div class="sh">${svg(s.d)}</div><div class="fl"></div></div>`).join('');
  $('#ban').style.display='none';show('race');let last=performance.now();
  const loop=n=>{if(!R.run)return;let dt=Math.min((n-last)/1000,.1);last=n;R.t+=dt;tick(dt);if(R.run)requestAnimationFrame(loop)};requestAnimationFrame(loop)}
 function tick(dt){const h=R.hz,H=HZ[h.type];
  if(!h.shown&&R.t>=h.start){h.shown=1;h.on=1;h.end=R.t+H.t[0]+Math.random()*(H.t[1]-H.t[0]);const s=R.ships[h.lane];
   const b=$('#ban');b.style.display='block';b.innerHTML=`⚠️ <b>${H.n}</b> 발생! — ${H.d}<br>발생 경로: <b>${h.lane+1}번</b> · 영향 선박: <b>${s.name}</b> · 예상 지속: 약 ${Math.round(h.end-R.t)}초`;
-  const l=$('#l'+h.lane);l.classList.add('hz');if(H.c)l.classList.add(H.c);document.body.classList.add('shake');setTimeout(()=>document.body.classList.remove('shake'),700)}
+  const l=$('#l'+h.lane);l.classList.add('hz');if(H.c)l.classList.add(H.c)}
  if(h.on&&R.t>=h.end){h.on=0;const l=$('#l'+h.lane);l.className='lane'+(R.ships[h.lane].player?' me2':'');$('#ban').innerHTML+='<br>✅ 재해가 종료되었습니다.'}
  R.ships.forEach((s,i)=>{if(s.fin)return;s.ev-=dt;if(s.ev<=0){const r=Math.random(),ok=s.fuel==s.pref;s.em=r<(ok?.3:.2)?1.5:r<.45?.55:1;s.ev=.8+Math.random()*1.5}
   let m=s.fit*s.em*(1+(Math.random()-.5)*.12)*(R.t>14?1+(R.t-14)*.6:1);if(h.on&&h.lane==i)m*=H.m;
@@ -146,7 +139,7 @@ function tick(dt){const h=R.hz,H=HZ[h.type];
  const rk=R.ships.slice().sort((a,b)=>(b.fin?1e3-b.fin:b.pos)-(a.fin?1e3-a.fin:a.pos));
  $('#rank').innerHTML='📊 '+rk.map((s,i)=>`${i+1}위 ${s.player?'<b style="color:#fc4">'+s.name+'</b>':s.name}`).join(' · ');$('#rt').textContent=R.t.toFixed(1)+'초';
  if(R.order.length==5){R.run=false;setTimeout(finish,800)}}
-async function finish(){if(R.paid)return;R.paid=true;const o=R.order,pr=o.findIndex(s=>s.player)+1;let g=0;if(USER){try{const r=await rpc('submit_race',{p_race:await R.rp,p_rank:pr,p_fuel:FD[M.sel].n});g=r.gain;pts=r.points}catch(e){alert('포인트 지급 실패: '+e.message)}}else{g=[0,10000,5000,2000][pr]||0;pts+=g;localStorage.setItem('oceanPts',pts)}
+function finish(){if(R.paid)return;R.paid=true;const o=R.order,pr=o.findIndex(s=>s.player)+1,g=(SET.rewards||[10000,5000,2000,0,0])[pr-1]||0,u=DB.users[USER.uid];u.points+=g;pts=u.points;USER.points=pts;DB.races.unshift({uid:USER.uid,rank:pr,fuel:FD[M.sel].n,gain:g,at:new Date().toISOString()});DB.races=DB.races.slice(0,500);save();
  $('#rsum').innerHTML=`당신의 순위: <b style="color:#fc4;font-size:30px">${pr}위</b> · 획득 <b>${g.toLocaleString()}P</b> · 내 포인트 <b>${pts.toLocaleString()}P</b>`;
  $('#rtab').innerHTML='<tr><th>순위</th><th>선박</th><th>이름</th><th>연료</th><th>기록</th></tr>'+o.map((s,i)=>`<tr class="${s.player?'me':''}"><td>${i+1}위</td><td>${svg(s.d)}</td><td>${s.name}${s.player?' <span class="tag">PLAYER</span>':''}</td><td>${FD[s.fuel].n}</td><td>${s.fin.toFixed(1)}초</td></tr>`).join('');upPts();show('res')}
 $('#go').onclick=startRace;
@@ -161,64 +154,54 @@ $('#q').oninput=renderDex;$('#cats').onclick=e=>{if(e.target.dataset.c){cat=e.ta
 $('#dg').onclick=e=>{const c=e.target.closest('.fc');if(c){$('#md').innerHTML=det(FD[+c.dataset.i]);$('#mod').classList.add('on')}};
 $('#mc').onclick=()=>$('#mod').classList.remove('on');
 
-// ===== Supabase 연동 (Supabase JS 클라이언트) =====
-const DOM='@ocean.game',PW=p=>p+'~ocean',ID_RE=/^20[1-7](0[1-9]|1\d|20)$/,QS=['첫 반려동물 이름은?','태어난 도시는?','가장 좋아하는 바다는?','졸업한 초등학교는?'];
-let USER=null,SET={speed:1,maint:false};
+// ===== local accounts (stored in this browser's localStorage) =====
+const ID_RE=/^20[1-7](0[1-9]|1[0-9]|20)$/,ADMIN='lgh0221',DBK='oceanDB',LK='oceanLogin';
+let USER=null,SET={speed:1,maint:false,rewards:[10000,5000,2000,0,0]};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),msg=t=>{$('#am').textContent=t};
-async function sb(path,o={}){if(!sbc)throw new Error('Supabase 설정이 필요합니다.');const{data}=await sbc.auth.getSession();const tk=data.session?data.session.access_token:SB_KEY;
- const r=await fetch(SB_URL+path,{method:o.m||'GET',headers:{apikey:SB_KEY,'Content-Type':'application/json',Authorization:'Bearer '+tk,...(o.h||{})},body:o.b?JSON.stringify(o.b):undefined});
- const t=await r.text();let j=null;try{j=t?JSON.parse(t):null}catch{j=t}
- if(!r.ok)throw new Error((j&&(j.message||j.msg||j.error_description||j.error))||'요청 실패');return j}
-async function rpc(f,b){if(!sbc)throw new Error('Supabase 설정이 필요합니다.');const{data,error}=await sbc.rpc(f,b||{});if(error)throw new Error(error.message);return data}
-async function restore(){try{const{data}=await sbc.auth.getSession();if(!data.session)return false;return await loadUser()}catch(e){return false}}
-async function loadUser(){const{data:{user}}=await sbc.auth.getUser();if(!user)throw 0;const p=(await sb('/rest/v1/profiles?id=eq.'+user.id+'&select=*'))[0];if(!p)throw 0;
- if(p.banned){await logout();msg('정지된 계정입니다. 관리자에게 문의하세요.');return false}
- USER=p;pts=p.points;await loadMeta();enter();return true}
-async function loadMeta(){try{(await sb('/rest/v1/settings?select=*')).forEach(r=>SET[r.key]=r.value);(await sb('/rest/v1/fuel_overrides?select=*')).forEach(r=>FD[r.idx]&&Object.assign(FD[r.idx],r.data));
- const n=await sb('/rest/v1/notices?select=*&order=created_at.desc&limit=3');$('#nt').innerHTML=n.map(x=>`<div class="pn" style="margin-bottom:6px">📢 <b>${esc(x.title)}</b> ${esc(x.body)}</div>`).join('')}catch(e){}}
-function enter(){$('#usr').textContent=USER.uid+(USER.role=='admin'?' 👑':'');$('#lo').hidden=false;$('#adb').hidden=USER.role!=='admin';newMatch();show('ready')}
-async function logout(){try{if(sbc)await sbc.auth.signOut()}catch{}USER=null;$('#lo').hidden=$('#adb').hidden=true;$('#usr').textContent='';pts=0;upPts();show('auth');renderAuth('in')}
-function renderAuth(t){const q=`<select id="fq">${QS.map(x=>`<option>${x}</option>`).join('')}</select>`,id='<input id="fi" inputmode="numeric" maxlength="7" placeholder="아이디">';
- $('#af').innerHTML={in:id+'<input id="fp" type="password" placeholder="비밀번호"><button class="g" data-do="in">로그인</button><div style="font-size:12px;color:#8cd;margin-top:6px">비밀번호를 잊으셨다면 관리자에게 문의하세요.</div>',
- up:id+'<div style="font-size:12px;color:#8cd">형식: 20 + (1~7) + (01~20) 예) 20105</div><input id="fp" type="password" placeholder="비밀번호 (4자리 이상)"><input id="fp2" type="password" placeholder="비밀번호 확인">'+'<button class="g" data-do="up">가입하기</button>',
- rs:id+q+'<input id="fa" placeholder="가입 때 입력한 답변"><input id="fp" type="password" placeholder="새 비밀번호 (4자리 이상)"><input id="fp2" type="password" placeholder="새 비밀번호 확인"><button class="g" data-do="rs">재설정</button>'}[t];msg('')}
+let DB;try{DB=JSON.parse(localStorage.getItem(DBK))||{}}catch{DB={}}
+DB.users=DB.users||{};DB.notices=DB.notices||[];DB.log=DB.log||[];DB.races=DB.races||[];DB.fail=DB.fail||{};DB.set=Object.assign({speed:1,maint:false,rewards:[10000,5000,2000,0,0]},DB.set||{});SET=DB.set;
+const save=()=>localStorage.setItem(DBK,JSON.stringify(DB)),rndSalt=()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
+async function hsh(pw,salt){try{const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(salt+'|'+pw));return[...new Uint8Array(d)].map(x=>x.toString(16).padStart(2,'0')).join('')}catch{let h=0;for(const c of salt+pw)h=(h*31+c.charCodeAt(0))|0;return'x'+h}}
+const addLog=(a,t,d)=>{DB.log.unshift({at:new Date().toISOString(),by:USER?USER.uid:'-',a,t,d});DB.log=DB.log.slice(0,200)};
+function loadUser(uid){const u=DB.users[uid];if(!u)return false;if(u.banned){msg('정지된 계정입니다.');return false}USER={uid,role:u.role,points:u.points};pts=u.points;localStorage.setItem(LK,uid);enter();return true}
+function restore(){const uid=localStorage.getItem(LK);return uid?loadUser(uid):false}
+function enter(){$('#usr').textContent=USER.uid+(USER.role=='admin'?' 👑':'');$('#lo').hidden=false;$('#adb').hidden=USER.role!=='admin';
+ $('#nt').innerHTML=DB.notices.slice(0,3).map(x=>`<div class="pn" style="margin-bottom:6px">📢 <b>${esc(x.title)}</b> ${esc(x.body)}</div>`).join('');newMatch();show('ready')}
+function logout(){localStorage.removeItem(LK);USER=null;$('#lo').hidden=$('#adb').hidden=true;$('#usr').textContent='';pts=0;upPts();show('auth');renderAuth('in')}
+function renderAuth(t){const id='<input id="fi" inputmode="numeric" maxlength="7" placeholder="아이디">';
+ $('#af').innerHTML={in:id+'<input id="fp" type="password" placeholder="비밀번호"><button class="g" data-do="in">로그인</button><div style="font-size:12px;color:#8cd;margin-top:6px">비밀번호를 잊으셨다면 관리자에게 초기화를 요청하세요.</div>',
+ up:id+'<div style="font-size:12px;color:#8cd">형식: 20 + (1~7) + (01~20) 예) 20105</div><input id="fp" type="password" placeholder="비밀번호 (4자리 이상)"><input id="fp2" type="password" placeholder="비밀번호 확인"><button class="g" data-do="up">가입하기</button>'}[t];msg('')}
 $('#atab').onclick=e=>e.target.dataset.t&&renderAuth(e.target.dataset.t);
 $('#af').onclick=async e=>{const d=e.target.dataset.do;if(!d)return;const id=$('#fi').value.trim(),pw=$('#fp').value;
- if(!(ID_RE.test(id)||d=='in'&&id=='lgh0221'))return msg('아이디는 20 + (1~7) + (01~20) 형식의 5자리 숫자입니다.');
- if(!sbc)return msg(CONF?'Supabase 라이브러리를 불러오지 못했습니다. 인터넷 연결을 확인하세요.':'Supabase 설정이 필요합니다. index.html 상단의 SB_URL, SB_KEY를 입력하세요.');
- try{if(d=='in'){if(await rpc('login_gate',{p_uid:id}))return msg('로그인 시도 초과: 15분 후 다시 시도하세요.');
-   const{error}=await sbc.auth.signInWithPassword({email:id+DOM,password:PW(pw)});if(error){await rpc('login_report',{p_uid:id,p_ok:false});throw new Error('아이디 또는 비밀번호가 올바르지 않습니다.')}
-   await rpc('login_report',{p_uid:id,p_ok:true});await loadUser();return}
-  if(pw.length<4)return msg('비밀번호는 4자리 이상이어야 합니다.');if(pw!==$('#fp2').value)return msg('비밀번호가 일치하지 않습니다.');
-  if(d=='up'){{const{error}=await sbc.auth.signUp({email:id+DOM,password:PW(pw)});if(error)return msg(/already|registered|exists/i.test(error.message)?'이미 사용 중인 아이디입니다.':'가입 실패: '+error.message);await sbc.auth.signOut()}renderAuth('in');msg('가입 완료! 로그인해 주세요.')}
-  else{const q=$('#fq').value,a=$('#fa').value.trim(),ok=await rpc('reset_pw',{p_uid:id,p_q:q,p_ans:a,p_new:PW(pw)});renderAuth('in');msg(ok?'비밀번호가 재설정되었습니다. 로그인해 주세요.':'아이디 또는 답변이 올바르지 않습니다.')}
- }catch(x){msg(/locked/.test(x.message)?'시도 횟수 초과: 15분 후 다시 시도하세요.':x.message)}};
+ if(!(ID_RE.test(id)||id===ADMIN))return msg('아이디는 20 + (1~7) + (01~20) 형식의 5자리 숫자입니다.');
+ if(d=='in'){const f=DB.fail[id]||{n:0,until:0};if(f.until>Date.now())return msg('로그인 시도 초과: 15분 후 다시 시도하세요.');
+  const u=DB.users[id];if(!u||await hsh(pw,u.s)!==u.h){f.n++;if(f.n>=5){f.until=Date.now()+9e5;f.n=0}DB.fail[id]=f;save();return msg('아이디 또는 비밀번호가 올바르지 않습니다.')}
+  delete DB.fail[id];save();return loadUser(id)}
+ if(pw.length<4)return msg('비밀번호는 4자리 이상이어야 합니다.');if(pw!==$('#fp2').value)return msg('비밀번호가 일치하지 않습니다.');
+ if(DB.users[id])return msg('이미 사용 중인 아이디입니다.');
+ const s0=rndSalt();DB.users[id]={s:s0,h:await hsh(pw,s0),points:0,role:id===ADMIN?'admin':'user',banned:false,created:new Date().toISOString().slice(0,10)};save();renderAuth('in');msg('가입 완료! 로그인해 주세요.')};
 $('#lo').onclick=()=>logout();$('#adb').onclick=()=>{show('adm');renderAdmin()};$('#aback').onclick=()=>show('ready');
-// ===== 관리자 (모든 권한은 서버 RLS/RPC에서 검증. 화면 숨김은 편의일 뿐) =====
-const AT=[['m','회원'],['s','통계'],['n','공지'],['g','운영 설정'],['f','연료'],['l','활동 기록']];let atab='m';
-async function renderAdmin(t){atab=t||atab;$('#atabs').innerHTML=AT.map(x=>`<button class="${x[0]==atab?'g':''}" data-t="${x[0]}">${x[1]}</button>`).join('');const b=$('#abody');b.innerHTML='불러오는 중...';
- try{await({m:aMem,s:aStat,n:aNot,g:aSet,f:aFuel,l:aLog})[atab](b)}catch(e){b.innerHTML='오류: '+esc(e.message)}}
-async function aMem(b,q){const l=await sb('/rest/v1/profiles?select=id,uid,points,role,banned,created_at&order=uid'+(q?'&uid=like.*'+q+'*':''));
- b.innerHTML=`<input id="aq" placeholder="아이디 검색" value="${esc(q||'')}" style="width:60%"><button data-a="srch">검색</button> 총 ${l.length}명<div style="overflow:auto"><table><tr><th>아이디</th><th>가입일</th><th>포인트</th><th>상태</th><th>관리</th></tr>${l.map(p=>`<tr><td>${p.uid}${p.role=='admin'?' 👑':''}</td><td>${p.created_at.slice(0,10)}</td><td>${p.points.toLocaleString()}</td><td>${p.banned?'🚫 정지':'정상'}</td><td><button data-a="pt" data-u="${p.uid}">포인트</button><button data-a="ban" data-u="${p.uid}" data-b="${p.banned?0:1}">${p.banned?'해제':'정지'}</button><button data-a="rec" data-i="${p.id}" data-u="${p.uid}">기록</button></td></tr>`).join('')}</table></div>`}
-async function aStat(b){const s=await rpc('admin_stats');b.innerHTML=`<div class="dg"><div class="fc">👥 전체 회원<br><b>${s.users}</b></div><div class="fc">🚫 정지 회원<br><b>${s.banned}</b></div><div class="fc">🏁 완료된 경주<br><b>${s.races}</b></div><div class="fc">💰 회원 보유 포인트 합계<br><b>${Number(s.points).toLocaleString()}</b></div></div><p>순위 분포: ${[1,2,3,4,5].map(i=>i+'위 '+(s.ranks[i]||0)).join(' · ')}</p><p>인기 연료: ${s.fuels.map(f=>esc(f.fuel)+' '+f.c).join(', ')||'-'}</p>`}
-async function aNot(b){const n=await sb('/rest/v1/notices?select=*&order=created_at.desc');b.innerHTML=`<input id="nti" placeholder="공지 제목" maxlength="60"><input id="ntb" placeholder="내용" maxlength="200"><button data-a="nadd">공지 등록</button>${n.map(x=>`<div class="sl"><b>${esc(x.title)}</b> ${esc(x.body)} <button data-a="ndel" data-i="${x.id}">삭제</button></div>`).join('')}`}
-async function aSet(b){const rw=SET.rewards||[10000,5000,2000];b.innerHTML=`속도 배율 <input id="sx" type="number" step="0.1" value="${SET.speed||1}">보상 1·2·3위 <input id="r1" type="number" value="${rw[0]}"><input id="r2" type="number" value="${rw[1]}"><input id="r3" type="number" value="${rw[2]}"><label><input type="checkbox" id="sm" ${SET.maint?'checked':''} style="width:auto"> 점검 모드 (일반 회원 경주 중지)</label><br><button data-a="sset">저장</button>`}
-async function aFuel(b){b.innerHTML=`<select id="fs">${FD.map((f,i)=>`<option value="${i}">${i+1}. ${esc(f.n)}</option>`).join('')}</select><textarea id="ft" rows="10" style="width:100%;background:#021a30;color:#fff"></textarea><div style="font-size:12px">a 특징 · p 장점 · d 단점 · u 활용현황 · h 선박 특징</div><button data-a="fsave">저장</button>`;const fl=()=>{const f=FD[$('#fs').value];$('#ft').value=JSON.stringify({a:f.a,p:f.p,d:f.d,u:f.u,h:f.h},null,1)};$('#fs').onchange=fl;fl()}
-async function aLog(b){const l=await sb('/rest/v1/admin_log?select=*&order=created_at.desc&limit=80');b.innerHTML=`<div style="overflow:auto"><table><tr><th>시각</th><th>관리자</th><th>작업</th><th>대상</th><th>내용</th></tr>${l.map(x=>`<tr><td>${x.created_at.slice(0,16).replace('T',' ')}</td><td>${esc(x.admin_uid)}</td><td>${esc(x.action)}</td><td>${esc(x.target)}</td><td>${esc(x.detail)}</td></tr>`).join('')}</table></div>`}
-$('#adm').onclick=async e=>{const d=e.target.dataset;if(d.t)return renderAdmin(d.t);if(!d.a)return;
- try{if(d.a=='srch')return aMem($('#abody'),$('#aq').value.replace(/\D/g,''));
-  if(d.a=='pt'){const n=parseInt(prompt(d.u+' 포인트 변경량 (지급: 양수, 차감: 음수)'));if(!n)return;const r=prompt('변경 사유 (필수)');if(!r||r.trim().length<2)return alert('사유를 입력하세요.');
-   if(!confirm(`${d.u}님에게 ${n>0?'+':''}${n}P ${n>0?'지급':'차감'}합니다.\n사유: ${r}\n진행할까요?`))return;alert('완료. 현재 '+await rpc('admin_adjust_points',{p_uid:d.u,p_delta:n,p_reason:r})+'P');renderAdmin()}
-  if(d.a=='ban'&&confirm(d.u+(d.b=='1'?' 계정을 정지할까요?':' 계정 정지를 해제할까요?'))){await rpc('admin_set_ban',{p_uid:d.u,p_ban:d.b=='1'});renderAdmin()}
-  if(d.a=='rec'){const rs=await sb('/rest/v1/races?user_id=eq.'+d.i+'&status=eq.done&order=created_at.desc&limit=30&select=*'),pl=await sb('/rest/v1/point_log?user_id=eq.'+d.i+'&order=created_at.desc&limit=20&select=*');
-   $('#md').innerHTML=`<h3>${d.u} 경주 기록</h3>${rs.map(r=>`<p>${r.created_at.slice(0,16).replace('T',' ')} · ${r.rank}위 · ${esc(r.fuel)} · +${r.points}P</p>`).join('')||'<p>기록 없음</p>'}<h3>포인트 내역</h3>${pl.map(r=>`<p>${r.created_at.slice(0,16).replace('T',' ')} · ${r.delta>0?'+':''}${r.delta}P · ${esc(r.reason)}${r.admin_uid?' ('+r.admin_uid+')':''}</p>`).join('')||'<p>내역 없음</p>'}`;$('#mod').classList.add('on')}
-  if(d.a=='nadd'){const t=$('#nti').value.trim();if(!t)return;await sb('/rest/v1/notices',{m:'POST',b:{title:t,body:$('#ntb').value.trim()}});renderAdmin()}
-  if(d.a=='ndel'&&confirm('공지를 삭제할까요?')){await sb('/rest/v1/notices?id=eq.'+d.i,{m:'DELETE'});renderAdmin()}
-  if(d.a=='sset'){const v={speed:Math.min(3,Math.max(.5,+$('#sx').value||1)),maint:$('#sm').checked,rewards:[+$('#r1').value||0,+$('#r2').value||0,+$('#r3').value||0,0,0]};
-   await sb('/rest/v1/settings?on_conflict=key',{m:'POST',h:{Prefer:'resolution=merge-duplicates'},b:Object.entries(v).map(([key,value])=>({key,value}))});Object.assign(SET,v);alert('저장되었습니다.')}
-  if(d.a=='fsave'){const i=+$('#fs').value,o=JSON.parse($('#ft').value),dt={};'apdhu'.split('').forEach(k=>{if(typeof o[k]=='string')dt[k]=o[k].slice(0,400)});
-   await sb('/rest/v1/fuel_overrides?on_conflict=idx',{m:'POST',h:{Prefer:'resolution=merge-duplicates'},b:{idx:i,data:dt}});Object.assign(FD[i],dt);alert('저장되었습니다.')}
- }catch(err){alert(err.message)}};
-newMatch();show('auth');renderAuth('in');if(sbc)restore();else msg(CONF?'Supabase 라이브러리를 불러오지 못했습니다. 인터넷 연결을 확인하세요.':'Supabase 설정이 필요합니다. index.html 상단의 SB_URL, SB_KEY를 입력하세요.');
+// ===== admin (manages this browser's data) =====
+const AT=[['m','회원'],['s','통계'],['n','공지'],['g','운영 설정'],['l','활동 기록']];let atab='m';
+const fmt=t=>t.slice(0,16).replace('T',' ');
+function renderAdmin(t){if(!USER||USER.role!=='admin')return;atab=t||atab;$('#atabs').innerHTML=AT.map(x=>`<button class="${x[0]==atab?'g':''}" data-t="${x[0]}">${x[1]}</button>`).join('');({m:aMem,s:aStat,n:aNot,g:aSet,l:aLog})[atab]($('#abody'))}
+function aMem(b,q){const l=Object.entries(DB.users).filter(([k])=>!q||k.includes(q)).sort();
+ b.innerHTML=`<input id="aq" placeholder="아이디 검색" value="${esc(q||'')}" style="width:60%"><button data-a="srch">검색</button> 총 ${l.length}명<div style="overflow:auto"><table><tr><th>아이디</th><th>가입일</th><th>포인트</th><th>상태</th><th>관리</th></tr>${l.map(([k,u])=>`<tr><td>${k}${u.role=='admin'?' 👑':''}</td><td>${u.created}</td><td>${u.points.toLocaleString()}</td><td>${u.banned?'🚫 정지':'정상'}</td><td><button data-a="pt" data-u="${k}">포인트</button><button data-a="ban" data-u="${k}">${u.banned?'해제':'정지'}</button><button data-a="rec" data-u="${k}">기록</button><button data-a="pw" data-u="${k}">비번초기화</button></td></tr>`).join('')}</table></div>`}
+function aStat(b){const r=DB.races,rk={},fu={};r.forEach(x=>{rk[x.rank]=(rk[x.rank]||0)+1;fu[x.fuel]=(fu[x.fuel]||0)+1});const us=Object.values(DB.users);
+ b.innerHTML=`<div class="dg"><div class="fc">👥 전체 회원<br><b>${us.length}</b></div><div class="fc">🚫 정지 회원<br><b>${us.filter(u=>u.banned).length}</b></div><div class="fc">🏁 완료된 경주<br><b>${r.length}</b></div><div class="fc">💰 보유 포인트 합계<br><b>${us.reduce((a,u)=>a+u.points,0).toLocaleString()}</b></div></div><p>순위 분포: ${[1,2,3,4,5].map(i=>i+'위 '+(rk[i]||0)).join(' · ')}</p><p>인기 연료: ${Object.entries(fu).sort((a,b)=>b[1]-a[1]).slice(0,5).map(x=>esc(x[0])+' '+x[1]).join(', ')||'-'}</p>`}
+function aNot(b){b.innerHTML=`<input id="nti" placeholder="공지 제목" maxlength="60"><input id="ntb" placeholder="내용" maxlength="200"><button data-a="nadd">공지 등록</button>${DB.notices.map((x,i)=>`<div class="sl"><b>${esc(x.title)}</b> ${esc(x.body)} <button data-a="ndel" data-i="${i}">삭제</button></div>`).join('')}`}
+function aSet(b){const rw=SET.rewards;b.innerHTML=`속도 배율 <input id="sx" type="number" step="0.1" value="${SET.speed}">보상 1·2·3위 <input id="r1" type="number" value="${rw[0]}"><input id="r2" type="number" value="${rw[1]}"><input id="r3" type="number" value="${rw[2]}"><label><input type="checkbox" id="sm" ${SET.maint?'checked':''} style="width:auto"> 점검 모드 (일반 회원 경주 중지)</label><br><button data-a="sset">저장</button>`}
+function aLog(b){b.innerHTML=`<div style="overflow:auto"><table><tr><th>시각</th><th>관리자</th><th>작업</th><th>대상</th><th>내용</th></tr>${DB.log.map(x=>`<tr><td>${fmt(x.at)}</td><td>${esc(x.by)}</td><td>${esc(x.a)}</td><td>${esc(x.t)}</td><td>${esc(x.d)}</td></tr>`).join('')}</table></div>`}
+$('#adm').onclick=async e=>{const d=e.target.dataset;if(d.t)return renderAdmin(d.t);if(!d.a||!USER||USER.role!=='admin')return;const u=DB.users[d.u];
+ if(d.a=='srch')return aMem($('#abody'),$('#aq').value.replace(/\D/g,''));
+ if(d.a=='pt'){const n=parseInt(String(prompt(d.u+' 포인트 변경량 (지급: 양수, 차감: 음수)\n현재 '+u.points.toLocaleString()+'P')||'').replace(/[,\s]/g,''));if(!n)return alert('숫자를 입력하세요. 예: 5000 또는 -3000');const r=prompt('변경 사유 (필수)');if(!r||r.trim().length<2)return alert('사유를 입력하세요.');
+  if(!confirm(`${d.u}님에게 ${n>0?'+':''}${n}P ${n>0?'지급':'차감'}합니다.\n사유: ${r}\n진행할까요?`))return;u.points+=n;addLog('POINTS',d.u,n+' / '+r);save();if(d.u===USER.uid){pts=u.points;USER.points=pts;upPts()}alert('완료: '+d.u+' 현재 '+u.points.toLocaleString()+'P');renderAdmin()}
+ if(d.a=='ban'&&u.role!=='admin'&&confirm(d.u+(u.banned?' 정지를 해제할까요?':' 계정을 정지할까요?'))){u.banned=!u.banned;addLog(u.banned?'BAN':'UNBAN',d.u,'');save();renderAdmin()}
+ if(d.a=='pw'&&confirm(d.u+' 비밀번호를 0000으로 초기화할까요?')){u.s=rndSalt();u.h=await hsh('0000',u.s);addLog('PW_RESET',d.u,'');save();alert('0000으로 초기화되었습니다. 회원에게 변경하도록 안내하세요.')}
+ if(d.a=='rec'){const rs=DB.races.filter(x=>x.uid===d.u).slice(0,30);$('#md').innerHTML=`<h3>${d.u} 경주 기록</h3>${rs.map(r=>`<p>${fmt(r.at)} · ${r.rank}위 · ${esc(r.fuel)} · +${r.gain}P</p>`).join('')||'<p>기록 없음</p>'}`;$('#mod').classList.add('on')}
+ if(d.a=='nadd'){const t=$('#nti').value.trim();if(!t)return;DB.notices.unshift({title:t,body:$('#ntb').value.trim()});addLog('NOTICE_ADD','',t);save();renderAdmin()}
+ if(d.a=='ndel'&&confirm('공지를 삭제할까요?')){addLog('NOTICE_DEL','',DB.notices[d.i].title);DB.notices.splice(+d.i,1);save();renderAdmin()}
+ if(d.a=='sset'){DB.set={speed:Math.min(3,Math.max(.5,+$('#sx').value||1)),maint:$('#sm').checked,rewards:[+$('#r1').value||0,+$('#r2').value||0,+$('#r3').value||0,0,0]};SET=DB.set;addLog('SETTINGS','',JSON.stringify(DB.set));save();alert('저장되었습니다.')}};
+newMatch();show('auth');renderAuth('in');restore();
 
 </script></body></html>
